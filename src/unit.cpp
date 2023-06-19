@@ -1,6 +1,8 @@
 #include "unit.hpp"
 
+// Map of unit attributes for each unit name
 const std::unordered_map<std::string, UnitAttributes> Unit::unitAttributesMap = {
+    // Initialize the attributes for each unit type
     {"Knight", {90, 5, 400, 1, 5}},
     {"Swordsman", {60, 2, 250, 5, 3}},
     {"Archer", {40, 2, 250, 5, 3}},
@@ -11,7 +13,9 @@ const std::unordered_map<std::string, UnitAttributes> Unit::unitAttributesMap = 
     {"Base", {200, 0, 0, 0, 0}}
 };
 
+// Map of damage values for each unit against other units
 const std::unordered_map<std::string, std::unordered_map<std::string, unsigned short>> Unit::damageMap = {
+    // Initialize the damage values for each unit against other units
     {"Knight", {{"Knight", 35}, {"Swordsman", 35}, {"Archer", 35}, {"Pikeman", 35}, {"Catapult", 35}, {"Ram", 50}, {"Worker", 35}, {"Base", 35}}},
     {"Swordsman", {{"Knight", 30}, {"Swordsman", 30}, {"Archer", 30}, {"Pikeman", 20}, {"Catapult", 20}, {"Ram", 30}, {"Worker", 30}, {"Base", 30}}},
     {"Archer", {{"Knight", 15}, {"Swordsman", 15}, {"Archer", 15}, {"Pikeman", 15}, {"Catapult", 10}, {"Ram", 10}, {"Worker", 15}, {"Base", 15}}},
@@ -21,7 +25,8 @@ const std::unordered_map<std::string, std::unordered_map<std::string, unsigned s
     {"Worker", {{"Knight", 5}, {"Swordsman", 5}, {"Archer", 5}, {"Pikeman", 5}, {"Catapult", 5}, {"Ram", 5}, {"Worker", 5}, {"Base", 1}}}
 };
 
-Unit::Unit(unsigned short id, const std::string& name) : id(id), name(name) {
+// Constructor for the Unit class
+Unit::Unit(bool owner, unsigned short id, const std::string& name) : owner(owner), id(id), name(name) {
     // Check if the unit name exists in the unitAttributesMap
     auto it = unitAttributesMap.find(name);
     if (it == unitAttributesMap.end()) {
@@ -38,8 +43,7 @@ Unit::Unit(unsigned short id, const std::string& name) : id(id), name(name) {
     baseSpeed = speed;
 }
 
-// Getters
-
+// Getters for various unit attributes
 unsigned short Unit::getId() const {
     return id;
 }
@@ -76,8 +80,18 @@ std::string Unit::getName() const {
     return name;
 }
 
-// Other member functions
+bool Unit::getOwner() const {
+    return owner;
+}
 
+char Unit::getInitial() const {
+    if (name.empty()) {
+        throw std::runtime_error("Unit's name is empty.");
+    }
+    return name[0];
+}
+
+// Calculate the damage inflicted by the current unit to the target unit
 unsigned short Unit::calculateDamage(const Unit& target) const {
     const std::string& targetName = target.getName();
 
@@ -98,11 +112,33 @@ unsigned short Unit::calculateDamage(const Unit& target) const {
     return 0;
 }
 
+// Calculate the distance between the unit's current position and the target position (x, y)
 unsigned short Unit::calculateDistance(unsigned short x, unsigned short y) {
     return std::abs(position[0] - x) + std::abs(position[1] - y);
 }
 
+// Initialize the unit's attributes based on the unitAttributesMap
+void Unit::initializeUnitAttributes() {
+    // Find the attributes for the current unit name in the unitAttributesMap
+    auto it = unitAttributesMap.find(name);
+    if (it != unitAttributesMap.end()) {
+        // Retrieve the attributes for the current unit
+        const UnitAttributes& attributes = it->second;
+
+        // Set the unit's attributes based on the retrieved values
+        health = attributes.health;
+        speed = attributes.speed;
+        cost = attributes.cost;
+        attackRange = attributes.attackRange;
+        buildingTime = attributes.buildingTime;
+    }
+}
+
+// Perform an attack action on the target unit with the specified ID
 void Unit::attackAction(unsigned short targetId, std::vector<Unit>& units) {
+    if (name == "Base") {
+        throw std::runtime_error("Base unit cannot perform attack action. ");
+    }
     if (speed == 0) {
         throw std::runtime_error("Unit cannot attack. Speed is 0.");
     }
@@ -120,6 +156,11 @@ void Unit::attackAction(unsigned short targetId, std::vector<Unit>& units) {
     }
 
     if (targetUnit) {
+        // Throw an error when trying to attack an ally
+        if (owner == targetUnit->owner) {
+            throw std::runtime_error("A unit cannot attack their allies.");
+        }
+
         // Calculate the distance between the unit's current position and the target unit's position
         unsigned short distance = calculateDistance(targetUnit->getPositionX(), targetUnit->getPositionY());
 
@@ -144,11 +185,32 @@ void Unit::attackAction(unsigned short targetId, std::vector<Unit>& units) {
     }
 }
 
-void Unit::moveAction(unsigned short x, unsigned short y) {
+// Perform a move action to the specified position (x, y)
+void Unit::moveAction(unsigned short x, unsigned short y, std::vector<Unit>& units, const Map& map) {
     unsigned short distance = calculateDistance(x, y);
 
+    if (name == "Base") {
+        throw std::runtime_error("Base unit cannot perform move action. ");
+    }
     if (distance > speed) {
         throw std::runtime_error("Movement distance exceeds the unit's speed.");
+    }
+
+    // Check if the target position is within the map's boundaries
+    if (x >= map.getWidth() || y >= map.getHeight()) {
+        throw std::runtime_error("Target position is outside the map's boundaries.");
+    }
+
+    // Check if the target position is an obstacle
+    if (map.getCell(x, y) == '9') {
+        throw std::runtime_error("Target position is an obstacle and cannot be moved to.");
+    }
+
+    // Check if the target position is occupied by an enemy unit
+    for (const Unit& unit : units) {
+        if (unit.getPositionX() == x && unit.getPositionY() == y && unit.getOwner() != owner) {
+            throw std::runtime_error("Cannot enter the enemy's unit space.");
+        }
     }
 
     position[0] = x;
@@ -157,6 +219,7 @@ void Unit::moveAction(unsigned short x, unsigned short y) {
     speed -= distance;
 }
 
+// Take the specified amount of damage
 void Unit::takeDamage(unsigned short amount) {
     if (amount >= health) {
         health = 0;
@@ -165,7 +228,11 @@ void Unit::takeDamage(unsigned short amount) {
     }
 }
 
+// Perform a building tick for the unit, reducing its building time by 1
 bool Unit::buildingTick() {
+    if (name == "Base") {
+        throw std::runtime_error("Base unit cannot be built. ");
+    }
     if (buildingTime > 0) {
         --buildingTime;
     }
@@ -173,11 +240,13 @@ bool Unit::buildingTick() {
     return buildingTime == 0;
 }
 
+// Reset the unit's attributes to their initial values
 void Unit::reset() {
     speed = baseSpeed;
     hasAttacked = false;
 }
 
+// Deploy the unit on the home base's space
 void Unit::deploy(const Unit& base) {
     if (name == "Base") {
         position[0] = base.position[0];
@@ -187,10 +256,7 @@ void Unit::deploy(const Unit& base) {
     }
 }
 
-bool Unit::isWorker() {
-    if (name == "Worker") {
-        return 1;
-    } else {
-        return 0;
-    }
+// Check if the unit is a worker
+bool Unit::isWorker() const {
+    return name == "Worker";
 }
