@@ -38,7 +38,8 @@ private:
 
     unsigned short baseSpeed;       /**< The base speed of the unit. */
     bool hasAttacked;               /**< Flag for when the unit has taken an attack action. */
-    bool isCreatingUnit;            /**< Flag for when the base is creating a unit. */
+
+    Unit* currentCreation;          /**< Pointer to the unit currently being created by the base. */
 
 public:
     /**
@@ -185,9 +186,12 @@ public:
     /**
      * @brief Check if the unit is currently on a mine tile on the map.
      * @param map The map object to check for the unit's position.
-     * @return true if the unit is on a mine tile, false otherwise.
+     * @return true if the worker unit is on a mine tile, false otherwise.
      */
-    bool isOnMine(const Map& map) const;
+    bool isWorkerOnMine(const Map& map) const;
+
+    void createUnit(const Unit& unit);
+
 private:
     /**
      * @brief Initialize the unit's attributes based on its name.

@@ -260,3 +260,48 @@ void Unit::deploy(const Unit& base) {
 bool Unit::isWorker() const {
     return name == "Worker";
 }
+
+void Unit::createUnit(const Unit& unit) {
+    // Check if the current unit is a base
+    if (name != "Base") {
+        throw std::runtime_error("Only a base unit can create units.");
+    }
+
+    // Check if a unit is already being created
+    if (currentCreation) {
+        if (currentCreation->getId() != unit.getId()) {
+            throw std::runtime_error("Base is already creating a different unit.");
+        }
+        // Check if the current unit being created has finished building
+        if (!currentCreation->buildingTick()) {
+            return;  // Do nothing if the current unit is still being built
+        }
+        // Deploy the unit on the base itself
+        currentCreation->deploy(*this);
+        currentCreation = nullptr;  // Reset the currentCreation pointer
+    } else {
+        // Create a new unit
+        currentCreation = new Unit(unit);
+        // Check if the unit being created has already finished building
+        if (!currentCreation->buildingTick()) {
+            return;  // Do nothing if the unit is still being built
+        }
+        // Deploy the unit on the base itself
+        currentCreation->deploy(*this);
+        currentCreation = nullptr;  // Reset the currentCreation pointer
+    }
+}
+
+// Check if a worker unit is on mine
+bool Unit::isWorkerOnMine(const Map& map) const {
+    // Check if the unit is a worker
+    if (!isWorker()) {
+        return false;
+    }
+    // Check if the unit's space is a mine space
+    if (map.getCell(getPositionX(), getPositionY()) == '6') {
+        return true;
+    } else {
+        return false;
+    }
+}
