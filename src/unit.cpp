@@ -91,6 +91,11 @@ char Unit::getInitial() const {
     return name[0];
 }
 
+void Unit::setPosition(unsigned int x, unsigned int y) {
+    position[0] = x;
+    position[1] = y;
+}
+
 // Calculate the damage inflicted by the current unit to the target unit
 unsigned short Unit::calculateDamage(const Unit& target) const {
     const std::string& targetName = target.getName();
@@ -135,7 +140,7 @@ void Unit::initializeUnitAttributes() {
 }
 
 // Perform an attack action on the target unit with the specified ID
-void Unit::attackAction(unsigned short targetId, std::vector<Unit>& units) {
+void Unit::attackAction(unsigned short targetId, const std::vector<Unit>& units) {
     if (name == "Base") {
         throw std::runtime_error("Base unit cannot perform attack action. ");
     }
@@ -147,13 +152,15 @@ void Unit::attackAction(unsigned short targetId, std::vector<Unit>& units) {
     }
     
     // Find the target unit with the specified ID
-    Unit* targetUnit = nullptr;
-    for (Unit& unit : units) {
+    const Unit* tempTargetUnit = nullptr;
+    for (const Unit& unit : units) {
         if (unit.getId() == targetId) {
-            targetUnit = &unit;
+            tempTargetUnit = &unit;
             break;
         }
     }
+
+    Unit* targetUnit = const_cast<Unit*>(tempTargetUnit);
 
     if (targetUnit) {
         // Throw an error when trying to attack an ally
@@ -186,7 +193,7 @@ void Unit::attackAction(unsigned short targetId, std::vector<Unit>& units) {
 }
 
 // Perform a move action to the specified position (x, y)
-void Unit::moveAction(unsigned short x, unsigned short y, std::vector<Unit>& units, const Map& map) {
+void Unit::moveAction(unsigned short x, unsigned short y, const std::vector<Unit>& units, const Map& map) {
     unsigned short distance = calculateDistance(x, y);
 
     if (name == "Base") {

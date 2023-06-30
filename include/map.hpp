@@ -27,6 +27,14 @@ public:
     Map(const std::string& filename);
 
     /**
+     * @brief Constructs a Map object by loading map data from a file.
+     * @param filename The name of the file containing the map data.
+     * @throw std::runtime_error If the map data fails to load from the file.
+     */
+    Map(std::ifstream& file);
+
+
+    /**
      * @brief Retrieves the width of the map.
      * @return The width of the map in number of cells.
      */

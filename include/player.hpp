@@ -1,5 +1,3 @@
-// player.hpp
-
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
@@ -17,6 +15,7 @@
 class Player {
 private:
     bool playerId; /**< The ID of the player. */
+    unsigned int gold; /**< The amount of gold player has. */
     std::string playerName; /**< The name of the player. */
     std::vector<Unit> playerUnits; /**< The units owned by the player. */
 
@@ -27,6 +26,8 @@ public:
      * @param name The name of the player.
      */
     Player(bool id, const std::string& name);
+
+    unsigned int getGold() const;
 
     /**
      * @brief Retrieves the ID of the player.
@@ -44,7 +45,9 @@ public:
      * @brief Retrieves the units owned by the player.
      * @return The units owned by the player.
      */
-    std::vector<Unit> getPlayerUnits() const;
+    std::vector<Unit> getPlayerUnits();
+
+    void setGold(unsigned int amount);
 
     /**
      * @brief Adds a unit to the units owned by the player.

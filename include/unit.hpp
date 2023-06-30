@@ -119,6 +119,14 @@ public:
      */
     char getInitial() const;
 
+    Unit* getCurrentCreation() {
+        return currentCreation;
+    }
+
+    // Setters
+
+    void setPosition(unsigned int x, unsigned int y);
+
     // Other member functions
 
     /**
@@ -142,7 +150,7 @@ public:
      * @param units The list of units to search for the target unit.
      * @throws std::runtime_error if the target unit with the specified ID is not found.
      */
-    void attackAction(unsigned short targetId, std::vector<Unit>& units);
+    void attackAction(unsigned short targetId, const std::vector<Unit>& units);
 
     /**
      * @brief Performs a move action by changing the position of the unit to the specified coordinates.
@@ -152,7 +160,7 @@ public:
      * @param map The map object to check for obstacles.
      * @throws std::runtime_error if the movement distance exceeds the unit's speed or if the target position is an obstacle.
      */
-    void moveAction(unsigned short x, unsigned short y, std::vector<Unit>& units, const Map& map);
+    void moveAction(unsigned short x, unsigned short y, const std::vector<Unit>& units, const Map& map);
 
     /**
      * @brief Inflicts damage to the unit based on the specified amount.

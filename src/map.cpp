@@ -4,6 +4,27 @@ Map::Map(const std::string& filename) {
     loadMapFromFile(filename);
 }
 
+Map::Map(std::ifstream& file) {
+    if (!file) {
+        throw std::runtime_error("Failed to open map file");
+    }
+
+    // Read each line from the file and store it in the grid
+    std::string line;
+    while (std::getline(file, line)) {
+        std::vector<char> row;
+        for (char c : line) {
+            if (!isValidCellCharacter(c)) {
+                throw std::runtime_error("Invalid character: " + c);
+            }
+            row.push_back(c);
+        }
+        grid.push_back(row);
+    }
+
+    validateMapData();
+}
+
 unsigned int Map::getWidth() const {
     return grid.empty() ? 0 : grid[0].size();
 }

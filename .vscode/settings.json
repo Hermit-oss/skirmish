@@ -47,6 +47,12 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "cinttypes": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "chrono": "cpp",
+        "codecvt": "cpp",
+        "ctime": "cpp",
+        "iomanip": "cpp",
+        "iostream": "cpp",
+        "ratio": "cpp"
     }
 }
