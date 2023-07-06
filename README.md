@@ -11,7 +11,9 @@ To compile the Skirmish game, follow these steps:
 3. Run the following commands to compile the game:
 
 make defensive
+
 make offensive
+
 make
 
 This commands will compile the source code and generate the `Skirmish` executable file in the main directory.
