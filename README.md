@@ -1,6 +1,6 @@
 # Skirmish
 
-Skirmish is a turn-based battlefield simulator where AI control units on a grid-based map.
+Skirmish is a turn-based battlefield simulator where AI controls units on a grid-based map.
 
 ## Compilation
 
@@ -35,6 +35,6 @@ The Skirmish simulator has the following dependencies:
 - C++17 or later
 - GNU Make
 
-Make sure you have a compatible C++ compiler and GNU Make installed on your system before compiling the game.
+Make sure you have a compatible C++ compiler and GNU Make installed on your system before compiling the simulator.
 
-The game has been written and tested on Linux Mint 21.1 Cinnamon.
+The simulator has been written and tested on Linux Mint 21.1 Cinnamon.
