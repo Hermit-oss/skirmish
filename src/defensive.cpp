@@ -6,16 +6,11 @@
 #include <string>
 #include <chrono>
 #include <thread>
-#include <future>
+#include <condition_variable>
 #include <queue>
+#include <atomic>
 #include "player.hpp"
 #include "unit.hpp"
-#include "map.cpp"
-
-void timerFunction(unsigned int timeLimit, std::promise<bool>& promise) {
-    std::this_thread::sleep_for(std::chrono::seconds(timeLimit));
-    promise.set_value(true);
-}
 
 // Function to perform pathfinding using Breadth-First Search (BFS)
 std::vector<std::vector<int>> performBFS(const Map& map, unsigned short startX, unsigned short startY) {
@@ -92,7 +87,7 @@ const std::unordered_map<char, std::string> unitTypeMap = {
 
 // Function to read the status file
 Player readStatusFile(std::ifstream& statusFileStream) {
-    Player player(false, "Player 1"); // Create a player object with default values
+    Player player(0, "Player 1", 0); // Create a player object with default values
 
     if (statusFileStream.is_open()) {
         // Read the first line containing the amount of gold
@@ -120,7 +115,7 @@ Player readStatusFile(std::ifstream& statusFileStream) {
                 }
                 std::string fullName = unitTypeMap.at(unitType[0]);
 
-                Unit unit(false, id, fullName);
+                Unit unit(0, id, fullName);
                 unit.setPosition(x, y);
                 unit.takeDamage(unit.getHealth() - hp);
                 player.addUnitToPlayerUnits(unit);
@@ -132,7 +127,7 @@ Player readStatusFile(std::ifstream& statusFileStream) {
 }
 
 Player getEnemyUnits(std::ifstream& statusFileStream) {
-    Player player(true, "Player 2"); // Create a player object with default values
+    Player player(1, "Player 2", 0); // Create a player object with default values
 
     if (statusFileStream.is_open()) {
         // Read the first line containing the amount of gold
@@ -156,13 +151,14 @@ Player getEnemyUnits(std::ifstream& statusFileStream) {
                 }
                 std::string fullName = unitTypeMap.at(unitType[0]);
 
-                Unit unit(true, id, fullName);
+                Unit unit(1, id, fullName);
                 unit.setPosition(x, y);
                 unit.takeDamage(unit.getHealth() - hp);
                 player.addUnitToPlayerUnits(unit);
             }
         }
     }
+    return player;
 }
 
 void performTurn(std::ifstream& mapFile, std::ifstream& statusFile, std::ofstream& ordersFile) {
@@ -171,6 +167,10 @@ void performTurn(std::ifstream& mapFile, std::ifstream& statusFile, std::ofstrea
 
     // Read the status file and create a Player object
     Player player = readStatusFile(statusFile);
+    // Seek the status file back to the beginning
+    statusFile.clear();
+    statusFile.seekg(0, std::ios::beg);
+    // Read the status file and create an Enemy object
     Player enemy = getEnemyUnits(statusFile);
 
 
@@ -251,6 +251,55 @@ void performTurn(std::ifstream& mapFile, std::ifstream& statusFile, std::ofstrea
     }
 }
 
+void performTurnWithTimeout(std::ifstream& mapFile, std::ifstream& statusFile, std::ofstream& ordersFile, int timeoutInSeconds) {
+    bool isTimeout = false;
+    bool isTurnCompleted = false;
+
+    // Create a flag to track if the turn thread has finished
+    std::atomic<bool> turnFinished(false);
+
+
+    // Create a thread to perform the turn
+    std::thread turnThread([&]() {
+        // Call the performTurn function
+        performTurn(mapFile, statusFile, ordersFile);
+        isTurnCompleted = true;
+        turnFinished.store(true);
+    });
+
+    // Create a thread to monitor the timeout
+    std::thread timeoutThread([&]() {
+        // Sleep for the specified timeout duration
+        std::this_thread::sleep_for(std::chrono::seconds(timeoutInSeconds));
+
+        // If the timeout expires and the turn is not completed, set the flag
+        if (!isTurnCompleted) {
+            isTimeout = true;
+        }
+
+        // Notify the turn thread to finish early
+        turnFinished.store(true);
+    });
+
+    // Wait for the turn thread to complete or the timeout to expire
+    turnThread.join();
+
+    // Check if the turn thread finished before the timeout
+    if (!isTimeout && !turnFinished.load()) {
+        std::cout << "Turn completed early!" << std::endl;
+        return;  // Finish the function early
+    }
+
+    // Join the timeout thread
+    timeoutThread.join();
+
+    // Check if the timeout occurred
+    if (isTimeout) {
+        throw std::runtime_error("Timeout occurred!");
+    }
+}
+
+
 int main(int argc, char* argv[]) {
     if (argc < 4 || argc > 5) {
         std::cerr << "Invalid amount of arguments. Usage: ./defensive.o <map file> <status file> <orders file> [time limit]" << std::endl;
@@ -276,26 +325,21 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Start timer asynchronously
-    std::promise<bool> timerPromise;
-    std::future<bool> timerFuture = timerPromise.get_future();
-    std::thread timerThread(timerFunction, timeLimit, std::ref(timerPromise));
+    try {
+        // Call the performTurnWithTimeout function with the specified time limit
+        performTurnWithTimeout(mapFileStream, statusFileStream, ordersFileStream, timeLimit);
 
-    performTurn(mapFileStream, statusFileStream, ordersFileStream);
-
-    // Check if time limit is exceeded
-    if (timeLimit > 0 && timerFuture.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
-        std::cerr << "Time limit exceeded." << std::endl;
-        // Stop processing or perform cleanup if needed
-        timerThread.join();  // Wait for the timer thread to finish
-        return 1;
+        // The performTurn function completed within the specified time limit
+        std::cout << "Turn completed successfully!" << std::endl;
+    } catch (const std::runtime_error& e) {
+        // Handle the timeout error
+        std::cout << "Error: " << e.what() << std::endl;
     }
 
-    // Stop the timer thread
-    timerPromise.set_value(true);
-    timerThread.join();  // Wait for the timer thread to finish
-
-    std::cout << "Processing completed successfully." << std::endl;
+    // Close your input and output files as needed
+    mapFileStream.close();
+    statusFileStream.close();
+    ordersFileStream.close();
 
     return 0;
 }

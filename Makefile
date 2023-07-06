@@ -1,28 +1,63 @@
-CC := g++
-CFLAGS := -std=c++17 -Wall -Wextra
-BUILD_DIR := build
+# Compiler
+CXX := g++
+# Compiler flags
+CXXFLAGS := -std=c++17 -lpthread -Wall -Wextra -pedantic -O2
+# Directory structure
 SRC_DIR := src
 INCLUDE_DIR := include
+BUILD_DIR := build
 DATA_DIR := data
-EXECUTABLE := skirmish
 
-# List of source files
-SOURCES := $(wildcard $(SRC_DIR)/*.cpp)
-# List of object files
-OBJECTS := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SOURCES))
+# Source files
+MAP_SRC := $(SRC_DIR)/map.cpp
+UNIT_SRC := $(SRC_DIR)/unit.cpp
+PLAYER_SRC := $(SRC_DIR)/player.cpp
 
-.PHONY: all clean
+# Object files
+MAP_OBJ := $(BUILD_DIR)/map.o
+UNIT_OBJ := $(BUILD_DIR)/unit.o
+PLAYER_OBJ := $(BUILD_DIR)/player.o
+
+# Executable
+EXECUTABLE := Skirmish
+DEFENSIVE_EXECUTABLE := $(BUILD_DIR)/defensive
+OFFENSIVE_EXECUTABLE := $(BUILD_DIR)/offensive
 
 all: $(EXECUTABLE)
 
-$(EXECUTABLE): $(OBJECTS) | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -o $@ $^
+$(EXECUTABLE): $(BUILD_DIR)/mediator.o $(MAP_OBJ) $(UNIT_OBJ) $(PLAYER_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
-	$(CC) $(CFLAGS) -I$(INCLUDE_DIR) -c -o $@ $<
+$(MAP_OBJ): $(MAP_SRC)
+	$(CXX) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+$(UNIT_OBJ): $(UNIT_SRC)
+	$(CXX) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
+
+$(PLAYER_OBJ): $(PLAYER_SRC)
+	$(CXX) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
+
+$(BUILD_DIR)/mediator.o: $(SRC_DIR)/mediator.cpp
+	$(CXX) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
+
+defensive: $(DEFENSIVE_EXECUTABLE)
+
+$(DEFENSIVE_EXECUTABLE): $(BUILD_DIR)/defensive.o $(MAP_OBJ) $(UNIT_OBJ) $(PLAYER_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+$(BUILD_DIR)/defensive.o: $(SRC_DIR)/defensive.cpp
+	$(CXX) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
+
+offensive: $(OFFENSIVE_EXECUTABLE)
+
+$(OFFENSIVE_EXECUTABLE): $(BUILD_DIR)/offensive.o $(MAP_OBJ) $(UNIT_OBJ) $(PLAYER_OBJ)
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+$(BUILD_DIR)/offensive.o: $(SRC_DIR)/offensive.cpp
+	$(CXX) $(CXXFLAGS) -I$(INCLUDE_DIR) -c $< -o $@
 
 clean:
-	rm -rf $(BUILD_DIR) $(EXECUTABLE)
+	rm -f $(BUILD_DIR)/*
+	rm -f $(EXECUTABLE) $(DEFENSIVE_EXECUTABLE) $(OFFENSIVE_EXECUTABLE)
+
+.PHONY: all defensive offensive clean

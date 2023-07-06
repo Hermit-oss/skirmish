@@ -1,9 +1,10 @@
 #include "player.hpp"
 
-Player::Player(bool id, const std::string& name) : playerId(id), playerName(name) {}
+Player::Player(bool id, const std::string& name, unsigned int gold) : playerId(id), playerName(name), playerGold(gold) {
+}
 
 unsigned int Player::getGold() const {
-    return gold;
+    return playerGold;
 }
 
 bool Player::getID() const {
@@ -19,7 +20,7 @@ std::vector<Unit> Player::getPlayerUnits() {
 }
 
 void Player::setGold(unsigned int amount) {
-    gold = amount;
+    playerGold = amount;
 }
 
 void Player::addUnitToPlayerUnits(const Unit& unit) {

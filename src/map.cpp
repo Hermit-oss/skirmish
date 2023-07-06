@@ -40,6 +40,19 @@ char Map::getCell(unsigned int x, unsigned int y) const {
     return grid[y][x];
 }
 
+std::pair<unsigned int, unsigned int> Map::getBasePosition(char baseCell) const {
+    for (unsigned int y = 0; y < getHeight(); ++y) {
+        for (unsigned int x = 0; x < getWidth(); ++x) {
+            char cell = getCell(x, y);
+            if (cell == baseCell) {
+                return std::make_pair(x, y);
+            }
+        }
+    }
+
+    throw std::runtime_error("No base position found in the map.");
+}
+
 void Map::loadMapFromFile(const std::string& filename) {
     std::ifstream file(filename);
     if (!file) {

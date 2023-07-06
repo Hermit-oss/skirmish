@@ -39,7 +39,7 @@ private:
     unsigned short baseSpeed;       /**< The base speed of the unit. */
     bool hasAttacked;               /**< Flag for when the unit has taken an attack action. */
 
-    Unit* currentCreation;          /**< Pointer to the unit currently being created by the base. */
+    Unit* currentCreation = nullptr;/**< Pointer to the unit currently being created by the base. */
 
 public:
     /**

@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <stdexcept>
+#include <utility>
 
 /**
  * @class Map
@@ -54,6 +55,13 @@ public:
      * @throw std::out_of_range If the provided coordinates are out of bounds.
      */
     char getCell(unsigned int x, unsigned int y) const;
+
+    /**
+     * @brief Retrieves the coordinates of the base cell with value "1" or "2".
+     * @return The coordinates of the base cell as a pair of integers (x, y).
+     * @throw std::runtime_error If no base cell is found or if the base cell value is invalid.
+     */
+    std::pair<unsigned int, unsigned int> getBasePosition(char baseCell) const;
 
 private:
     /**

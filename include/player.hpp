@@ -15,7 +15,7 @@
 class Player {
 private:
     bool playerId; /**< The ID of the player. */
-    unsigned int gold; /**< The amount of gold player has. */
+    unsigned int playerGold; /**< The amount of gold player has. */
     std::string playerName; /**< The name of the player. */
     std::vector<Unit> playerUnits; /**< The units owned by the player. */
 
@@ -25,7 +25,7 @@ public:
      * @param id The ID of the player.
      * @param name The name of the player.
      */
-    Player(bool id, const std::string& name);
+    Player(bool id, const std::string& name, unsigned int gold);
 
     unsigned int getGold() const;
 
