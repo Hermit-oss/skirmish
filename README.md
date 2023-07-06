@@ -8,17 +8,17 @@ To compile the Skirmish game, follow these steps:
 
 1. Clone the Skirmish repository to your local machine.
 2. Open a terminal and navigate to the root directory of the repository.
-3. Run the following commands to compile the game:
+3. Run the following commands to compile the simulator:
 ```
 make defensive
 make offensive
 make
 ```
-This commands will compile the source code and generate the `Skirmish` executable file in the main directory.
+This commands will compile the source code and generate the `Skirmish` executable file in the root directory.
 
 ## Usage
 
-To launch the Skirmish game, navigate to the directory where the `Skirmish` executable is located. Run the following command:
+To launch the Skirmish simulator, navigate to the directory where the `Skirmish` executable is located. Run the following command:
 
 ./Skirmish
 
@@ -30,7 +30,7 @@ TODO
 
 ## Dependencies
 
-The Skirmish game has the following dependencies:
+The Skirmish simulator has the following dependencies:
 
 - C++17 or later
 - GNU Make
