@@ -1,7 +1,5 @@
 #include <iostream>
-#include <fstream>
 #include <cstdlib>
-#include <string>
 #include <filesystem>
 #include "player.hpp"
 
@@ -41,26 +39,41 @@ void initializeStatus(const fs::path& statusFilePath, Player& player1, Player& p
     statusFile.close();
 }
 
-
 void switchStatus(std::fstream& statusFile, Player& player) {
-    // First, replace the first line with the playerGold
-    statusFile.seekp(0); // Move the write position to the beginning of the file
-    statusFile << player.getGold() << std::endl;
-    
-    // Then, switch P's to E's and E's to P's in each line
+    // Read the file line by line and update the contents
+    std::ostringstream updatedContents;
     std::string line;
+    bool firstLine = true;
     while (std::getline(statusFile, line)) {
         if (!line.empty()) {
-            if (line[0] == 'P')
-                line[0] = 'E';
-            else if (line[0] == 'E')
-                line[0] = 'P';
+            if (firstLine) {
+                updatedContents << player.getGold() << '\n';
+                firstLine = false;
+            } else {
+                char firstChar = line[0];
+                if (firstChar == 'P')
+                    firstChar = 'E';
+                else if (firstChar == 'E')
+                    firstChar = 'P';
+                line[0] = firstChar;
+                updatedContents << line << '\n';
+            }
         }
-        // Move the read position back to the beginning of the line
-        statusFile.seekg(-(static_cast<int>(line.length()) + 1), std::ios_base::cur);
-        // Write the modified line back to the file
-        statusFile << line << std::endl;
     }
+    
+    // Move the write position to the beginning of the file and write the updated contents
+    statusFile.clear(); // Clear the end-of-file flag
+    statusFile.seekp(0);
+    statusFile << updatedContents.str();
+    statusFile.flush(); // Flush the changes to the file
+    statusFile.seekg(0); // Move the read position back to the beginning of the file
+}
+
+void analyzeTurn(std::ifstream& ordersFile, std::fstream& statusFile, Player& player) {
+/*  Read orders, are they correct (catch)?
+    Update player - gold, units
+    Update status file - add new lines
+*/
 }
 
 int main() {
@@ -72,9 +85,9 @@ int main() {
     const fs::path player1File = "build/defensive";
     const fs::path player2File = "build/offensive";
     // Time limit in seconds
-    const unsigned short timeLimit = 10;
+    const unsigned short timeLimit = 1;
     // Other
-    const unsigned short numberOfTurnsPerPlayer = 1000;
+    const unsigned short numberOfTurnsPerPlayer = 10;
 
     // Check file existence
     if (!fs::exists(mapFile) || !fs::exists(ordersFile) ||
@@ -108,6 +121,13 @@ int main() {
     // Initialize status file
     initializeStatus(statusFile, player1, player2);
 
+    // Orders file stream
+    std::ifstream ordersFileStream(ordersFile);
+    if (!ordersFileStream) {
+        std::cerr << "Failed to open the orders file." << std::endl;
+        return 1;    
+    }
+
     // Status file stream
     std::fstream statusFileStream(statusFile, std::ios::in | std::ios::out);
     if (!statusFileStream) {
@@ -115,7 +135,7 @@ int main() {
         return 1;
     }
 
-    std::cout << "==== Game Start ====" << std::endl;
+    std::cout << "==== SIMULATION START ====" << std::endl;
     for (int turn = 0; turn < numberOfTurnsPerPlayer; turn++) {
         std::cout << "=== Turn " << (turn + 1) << " ===" << std::endl;
 
@@ -126,7 +146,7 @@ int main() {
             std::cerr << "Player 1's turn failed with exit code: " << player1Result << std::endl;
             return 1;
         }
-
+        analyzeTurn(ordersFileStream, statusFileStream, player1);
         switchStatus(statusFileStream, player2);
 
         // Player 2's turn
@@ -135,10 +155,10 @@ int main() {
             std::cerr << "Player 2's turn failed with exit code: " << player2Result << std::endl;
             return 1;
         }
-
+        analyzeTurn(ordersFileStream, statusFileStream, player2);
         switchStatus(statusFileStream, player1);
     }
-    std::cout << "==== Game Finished ====" << std::endl;
+    std::cout << "==== SIMULATION FINISHED ====" << std::endl;
 
     return 0;
 }

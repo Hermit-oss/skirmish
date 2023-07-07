@@ -2,9 +2,6 @@
 #define UNIT_H
 
 #include "map.hpp"
-#include <string>
-#include <vector>
-#include <stdexcept>
 #include <unordered_map>
 
 /**

@@ -1,16 +1,11 @@
 #include <iostream>
-#include <fstream>
 #include <random>
-#include <vector>
 #include <sstream>
-#include <string>
 #include <chrono>
 #include <thread>
-#include <condition_variable>
 #include <queue>
 #include <atomic>
 #include "player.hpp"
-#include "unit.hpp"
 
 // Function to perform pathfinding using Breadth-First Search (BFS)
 std::vector<std::vector<int>> performBFS(const Map& map, unsigned short startX, unsigned short startY) {
@@ -298,7 +293,6 @@ void performTurnWithTimeout(std::ifstream& mapFile, std::ifstream& statusFile, s
         throw std::runtime_error("Timeout occurred!");
     }
 }
-
 
 int main(int argc, char* argv[]) {
     if (argc < 4 || argc > 5) {

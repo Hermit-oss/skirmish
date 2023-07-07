@@ -1,16 +1,11 @@
 #include <iostream>
-#include <fstream>
 #include <random>
-#include <vector>
 #include <sstream>
-#include <string>
 #include <chrono>
 #include <thread>
-#include <condition_variable>
 #include <queue>
 #include <atomic>
 #include "player.hpp"
-#include "unit.hpp"
 
 // Function to perform pathfinding using Breadth-First Search (BFS)
 std::vector<std::vector<int>> performBFS(const Map& map, unsigned short startX, unsigned short startY) {
