@@ -107,7 +107,6 @@ void analyzeTurn(std::ifstream& ordersFile, std::fstream& statusFile, Player& pl
 
         if (!(iss >> unitId >> action)) {
             // Invalid order format, skip the line
-            std::cout << "Just checking" << std::endl;
             continue;
         }
 
