@@ -19,6 +19,15 @@ std::vector<Unit> Player::getPlayerUnits() {
     return playerUnits;
 }
 
+Unit Player::getUnitByID(unsigned short id) {
+    for (auto &unit : playerUnits) {
+        if (unit.getId() == id) {
+            return unit;
+        }
+    }
+    return playerUnits[0];
+}
+
 void Player::setGold(unsigned int amount) {
     playerGold = amount;
 }

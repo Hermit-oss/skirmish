@@ -5,6 +5,18 @@
 
 namespace fs = std::filesystem;
 
+// Mapping of abbreviated unit types to full names
+const std::unordered_map<char, std::string> unitTypeMap = {
+    {'B', "Base"},
+    {'W', "Worker"},
+    {'S', "Swordsman"},
+    {'K', "Knight"},
+    {'R', "Ram"},
+    {'C', "Catapult"},
+    {'P', "Pikeman"},
+    {'A', "Archer"}
+};
+
 void initializeStatus(const fs::path& statusFilePath, Player& player1, Player& player2) {
     // Delete the file if it exists
     if (fs::exists(statusFilePath)) {
@@ -69,11 +81,74 @@ void switchStatus(std::fstream& statusFile, Player& player) {
     statusFile.seekg(0); // Move the read position back to the beginning of the file
 }
 
-void analyzeTurn(std::ifstream& ordersFile, std::fstream& statusFile, Player& player) {
-/*  Read orders, are they correct (catch)?
-    Update player - gold, units
-    Update status file - add new lines
-*/
+unsigned short getHighestID(Player& player, Player& enemy) {
+    unsigned short highestID = 0;
+    for (auto& unit : player.getPlayerUnits()) {
+        unsigned short newID = unit.getId();
+        if (newID > highestID) {
+            highestID = newID;
+        }
+    }
+    for (auto& unit : enemy.getPlayerUnits()) {
+        unsigned short newID = unit.getId();
+        if (newID > highestID) {
+            highestID = newID;
+        }
+    }
+    return highestID;
+}
+
+void analyzeTurn(std::ifstream& ordersFile, std::fstream& statusFile, Player& player, Player& enemy, Map& map) {
+    std::string line;
+    while (std::getline(ordersFile, line)) {
+        std::istringstream iss(line);
+        int unitId;
+        std::string action;
+
+        if (!(iss >> unitId >> action)) {
+            // Invalid order format, skip the line
+            continue;
+        }
+
+        // Handle different actions
+        if (action == "B") {
+            char unitTypeAbbreviation;
+            if (iss >> unitTypeAbbreviation) {
+                // Build unit action
+                std::string unitType;
+                if (unitTypeMap.find(unitTypeAbbreviation) != unitTypeMap.end()) {
+                    unitType = unitTypeMap.at(unitTypeAbbreviation);
+                    Unit newUnit(false, getHighestID(player, enemy) + 1, unitType);
+                    player.getPlayerUnits()[0].createUnit(newUnit);
+                    // Update status file
+                    statusFile << "P " << unitTypeAbbreviation << " " << newUnit.getId() << " 0 0 " << newUnit.getHealth() << std::endl;
+                }
+            }
+        } else if (action == "M") {
+            unsigned short x, y;
+            if (iss >> x >> y) {
+                // Move unit action
+                player.getUnitByID(unitId).moveAction(x, y, enemy.getPlayerUnits(), map);
+                // Update status file
+                statusFile  << "P " << player.getUnitByID(unitId).getInitial() << " " << unitId << " " 
+                            << player.getUnitByID(unitId).getPositionX() << " " << player.getUnitByID(unitId).getPositionY() 
+                            << " " << player.getUnitByID(unitId).getHealth() << std::endl;
+            }
+        } else if (action == "A") {
+            int targetId;
+            if (iss >> targetId) {
+                // Attack unit action
+                player.getUnitByID(unitId).attackAction(targetId, enemy.getPlayerUnits());
+                // Update status file
+                statusFile  << "P " << player.getUnitByID(unitId).getInitial() << " " << unitId << " " 
+                            << player.getUnitByID(unitId).getPositionX() << " " << player.getUnitByID(unitId).getPositionY() 
+                            << " " << player.getUnitByID(unitId).getHealth() << std::endl;
+                statusFile  << "E " << enemy.getUnitByID(targetId).getInitial() << " " << targetId << " " 
+                            << enemy.getUnitByID(targetId).getPositionX() << " " << enemy.getUnitByID(targetId).getPositionY() 
+                            << " " << enemy.getUnitByID(targetId).getHealth() << std::endl;
+            }
+        }
+    }
 }
 
 int main() {
@@ -139,14 +214,13 @@ int main() {
     for (int turn = 0; turn < numberOfTurnsPerPlayer; turn++) {
         std::cout << "=== Turn " << (turn + 1) << " ===" << std::endl;
 
-
         // Player 1's turn
         int player1Result = system(player1Command.c_str());
         if (player1Result != 0) {
             std::cerr << "Player 1's turn failed with exit code: " << player1Result << std::endl;
             return 1;
         }
-        analyzeTurn(ordersFileStream, statusFileStream, player1);
+        analyzeTurn(ordersFileStream, statusFileStream, player1, player2, map);
         switchStatus(statusFileStream, player2);
 
         // Player 2's turn
@@ -155,7 +229,7 @@ int main() {
             std::cerr << "Player 2's turn failed with exit code: " << player2Result << std::endl;
             return 1;
         }
-        analyzeTurn(ordersFileStream, statusFileStream, player2);
+        analyzeTurn(ordersFileStream, statusFileStream, player2, player2, map);
         switchStatus(statusFileStream, player1);
     }
     std::cout << "==== SIMULATION FINISHED ====" << std::endl;

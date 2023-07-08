@@ -7,6 +7,9 @@
 #include <atomic>
 #include "player.hpp"
 
+#define PLAYER_ID 0
+#define ENEMY_ID 1
+
 // Function to perform pathfinding using Breadth-First Search (BFS)
 std::vector<std::vector<int>> performBFS(const Map& map, unsigned short startX, unsigned short startY) {
     unsigned int width = map.getWidth();

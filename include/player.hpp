@@ -45,6 +45,8 @@ public:
      */
     std::vector<Unit> getPlayerUnits();
 
+    Unit getUnitByID(unsigned short id);
+
     void setGold(unsigned int amount);
 
     /**

@@ -276,7 +276,7 @@ void Unit::createUnit(const Unit& unit) {
 
     // Check if a unit is already being created
     if (currentCreation) {
-        if (currentCreation->getId() != unit.getId()) {
+        if (currentCreation->getId() != unit.getId() && currentCreation != nullptr) {
             throw std::runtime_error("Base is already creating a different unit.");
         }
         // Check if the current unit being created has finished building
