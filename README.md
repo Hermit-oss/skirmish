@@ -24,7 +24,7 @@ To launch the Skirmish simulator, navigate to the directory where the `Skirmish`
 ```
 This will start the simulation.
 
-## Instructions
+## Instructions (TODO)
 
 ### Functioning
 
@@ -44,7 +44,3 @@ The Skirmish simulator has the following dependencies:
 Make sure you have a compatible C++ compiler and GNU Make installed on your system before compiling the simulator.
 
 The simulator has been written and tested on Linux Mint 21.1 Cinnamon.
-
-## Contributions
-
-As of now, contributions to Skirmish are not open. However, we appreciate your interest in improving the simulator, and contributions will be welcomed in the future. Please stay tuned for updates on how you can contribute.
