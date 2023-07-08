@@ -107,6 +107,7 @@ void analyzeTurn(std::ifstream& ordersFile, std::fstream& statusFile, Player& pl
 
         if (!(iss >> unitId >> action)) {
             // Invalid order format, skip the line
+            std::cout << "Just checking" << std::endl;
             continue;
         }
 
@@ -120,6 +121,7 @@ void analyzeTurn(std::ifstream& ordersFile, std::fstream& statusFile, Player& pl
                     unitType = unitTypeMap.at(unitTypeAbbreviation);
                     Unit newUnit(false, getHighestID(player, enemy) + 1, unitType);
                     player.getPlayerUnits()[0].createUnit(newUnit);
+                    player.addUnitToPlayerUnits(newUnit);
                     // Update status file
                     statusFile << "P " << unitTypeAbbreviation << " " << newUnit.getId() << " 0 0 " << newUnit.getHealth() << std::endl;
                 }
