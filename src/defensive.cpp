@@ -71,18 +71,6 @@ std::pair<unsigned short, unsigned short> findSpecifiedObject(const Map& map, un
     return {nearestX, nearestY};
 }
 
-// Mapping of abbreviated unit types to full names
-const std::unordered_map<char, std::string> unitTypeMap = {
-    {'B', "Base"},
-    {'W', "Worker"},
-    {'S', "Swordsman"},
-    {'K', "Knight"},
-    {'R', "Ram"},
-    {'C', "Catapult"},
-    {'P', "Pikeman"},
-    {'A', "Archer"}
-};
-
 // Function to read the status file
 Player readStatusFile(std::ifstream& statusFileStream) {
     Player player(0, "Player 1", 0); // Create a player object with default values
@@ -195,7 +183,7 @@ void performTurn(std::ifstream& mapFile, std::ifstream& statusFile, std::ofstrea
         // Check if the unit is a base
         if (unit.getName() == "Base") {
             // Check if the base is not making a unit
-            if (!unit.getCurrentCreation()) {
+            if (unit.getCurrentCreation() == nullptr) {
                 // Generate a random number to decide whether to make a unit
                 int makeUnit = dis(gen);
                 if (makeUnit == 1) {
@@ -327,7 +315,7 @@ int main(int argc, char* argv[]) {
         performTurnWithTimeout(mapFileStream, statusFileStream, ordersFileStream, timeLimit);
 
         // The performTurn function completed within the specified time limit
-        std::cout << "Turn completed successfully!" << std::endl;
+        std::cout << "Defensive Player has finished their turn!" << std::endl;
     } catch (const std::runtime_error& e) {
         // Handle the timeout error
         std::cout << "Error: " << e.what() << std::endl;

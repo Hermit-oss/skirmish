@@ -5,18 +5,6 @@
 
 namespace fs = std::filesystem;
 
-// Mapping of abbreviated unit types to full names
-const std::unordered_map<char, std::string> unitTypeMap = {
-    {'B', "Base"},
-    {'W', "Worker"},
-    {'S', "Swordsman"},
-    {'K', "Knight"},
-    {'R', "Ram"},
-    {'C', "Catapult"},
-    {'P', "Pikeman"},
-    {'A', "Archer"}
-};
-
 void initializeStatus(const fs::path& statusFilePath, Player& player1, Player& player2) {
     // Delete the file if it exists
     if (fs::exists(statusFilePath)) {
@@ -100,7 +88,14 @@ unsigned short getHighestID(Player& player, Player& enemy) {
 
 void analyzeTurn(std::ifstream& ordersFile, std::fstream& statusFile, Player& player, Player& enemy, Map& map) {
     std::string line;
+    bool skipFirstLine = true; // Flag to skip the first line
+
     while (std::getline(ordersFile, line)) {
+        if (skipFirstLine) {
+            skipFirstLine = false;
+            continue; // Skip the first line
+        }
+
         std::istringstream iss(line);
         int unitId;
         std::string action;
@@ -118,11 +113,9 @@ void analyzeTurn(std::ifstream& ordersFile, std::fstream& statusFile, Player& pl
                 std::string unitType;
                 if (unitTypeMap.find(unitTypeAbbreviation) != unitTypeMap.end()) {
                     unitType = unitTypeMap.at(unitTypeAbbreviation);
-                    Unit newUnit(false, getHighestID(player, enemy) + 1, unitType);
+                    Unit newUnit(player.getID(), getHighestID(player, enemy) + 1, unitType);
                     player.getPlayerUnits()[0].createUnit(newUnit);
                     player.addUnitToPlayerUnits(newUnit);
-                    // Update status file
-                    statusFile << "P " << unitTypeAbbreviation << " " << newUnit.getId() << " 0 0 " << newUnit.getHealth() << std::endl;
                 }
             }
         } else if (action == "M") {
@@ -130,27 +123,45 @@ void analyzeTurn(std::ifstream& ordersFile, std::fstream& statusFile, Player& pl
             if (iss >> x >> y) {
                 // Move unit action
                 player.getUnitByID(unitId).moveAction(x, y, enemy.getPlayerUnits(), map);
-                // Update status file
-                statusFile  << "P " << player.getUnitByID(unitId).getInitial() << " " << unitId << " " 
-                            << player.getUnitByID(unitId).getPositionX() << " " << player.getUnitByID(unitId).getPositionY() 
-                            << " " << player.getUnitByID(unitId).getHealth() << std::endl;
             }
         } else if (action == "A") {
             int targetId;
             if (iss >> targetId) {
                 // Attack unit action
                 player.getUnitByID(unitId).attackAction(targetId, enemy.getPlayerUnits());
-                // Update status file
-                statusFile  << "P " << player.getUnitByID(unitId).getInitial() << " " << unitId << " " 
-                            << player.getUnitByID(unitId).getPositionX() << " " << player.getUnitByID(unitId).getPositionY() 
-                            << " " << player.getUnitByID(unitId).getHealth() << std::endl;
-                statusFile  << "E " << enemy.getUnitByID(targetId).getInitial() << " " << targetId << " " 
-                            << enemy.getUnitByID(targetId).getPositionX() << " " << enemy.getUnitByID(targetId).getPositionY() 
-                            << " " << enemy.getUnitByID(targetId).getHealth() << std::endl;
+            }
+        }
+
+        // Update status file
+        for (Unit& unit : player.getPlayerUnits()){
+            if (unit.getName() == "Base") {
+                if (unit.getCurrentCreation() != nullptr) {
+                    statusFile << "P " << unit.getInitial() << " " << unit.getId() << " " << unit.getPositionX() << " " << unit.getPositionY() << " " << unit.getHealth() << " " << unit.getCurrentCreation()->getInitial() << std::endl;
+                }
+                else {
+                    statusFile << "P " << unit.getInitial() << " " << unit.getId() << " " << unit.getPositionX() << " " << unit.getPositionY() << " " << unit.getHealth() << " 0" << std::endl;
+                }
+            }
+            else {
+                statusFile << "P " << unit.getInitial() << " " << unit.getId() << " " << unit.getPositionX() << " " << unit.getPositionY() << " " << unit.getHealth() << std::endl;
+            }
+        }
+        for (Unit& unit : enemy.getPlayerUnits()){
+            if (unit.getName() == "Base") {
+                if (unit.getCurrentCreation() != nullptr) {
+                    statusFile << "E " << unit.getInitial() << " " << unit.getId() << " " << unit.getPositionX() << " " << unit.getPositionY() << " " << unit.getHealth() << " " << unit.getCurrentCreation()->getInitial() << std::endl;
+                }
+                else {
+                    statusFile << "E " << unit.getInitial() << " " << unit.getId() << " " << unit.getPositionX() << " " << unit.getPositionY() << " " << unit.getHealth() << " 0" << std::endl;
+                }
+            }
+            else {
+                statusFile << "E " << unit.getInitial() << " " << unit.getId() << " " << unit.getPositionX() << " " << unit.getPositionY() << " " << unit.getHealth() << std::endl;
             }
         }
     }
 }
+
 
 int main() {
     // Data files paths

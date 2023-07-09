@@ -44,3 +44,9 @@ The Skirmish simulator has the following dependencies:
 Make sure you have a compatible C++ compiler and GNU Make installed on your system before compiling the simulator.
 
 The simulator has been written and tested on Linux Mint 21.1 Cinnamon.
+
+## TODO
+
+- Fix the AI to recpect the rules
+- Fix the unit position assignment
+- Create two separate AIs (as of right now, both defensive and offensive work the same)

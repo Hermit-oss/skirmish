@@ -68,18 +68,6 @@ std::pair<unsigned short, unsigned short> findSpecifiedObject(const Map& map, un
     return {nearestX, nearestY};
 }
 
-// Mapping of abbreviated unit types to full names
-const std::unordered_map<char, std::string> unitTypeMap = {
-    {'B', "Base"},
-    {'W', "Worker"},
-    {'S', "Swordsman"},
-    {'K', "Knight"},
-    {'R', "Ram"},
-    {'C', "Catapult"},
-    {'P', "Pikeman"},
-    {'A', "Archer"}
-};
-
 // Function to read the status file
 Player readStatusFile(std::ifstream& statusFileStream) {
     Player player(0, "Player 1", 0); // Create a player object with default values
@@ -325,7 +313,7 @@ int main(int argc, char* argv[]) {
         performTurnWithTimeout(mapFileStream, statusFileStream, ordersFileStream, timeLimit);
 
         // The performTurn function completed within the specified time limit
-        std::cout << "Turn completed successfully!" << std::endl;
+        std::cout << "Offensive player has finished their turn!" << std::endl;
     } catch (const std::runtime_error& e) {
         // Handle the timeout error
         std::cout << "Error: " << e.what() << std::endl;

@@ -4,6 +4,18 @@
 #include "map.hpp"
 #include <unordered_map>
 
+// Mapping of abbreviated unit types to full names
+const std::unordered_map<char, std::string> unitTypeMap = {
+    {'B', "Base"},
+    {'W', "Worker"},
+    {'S', "Swordsman"},
+    {'K', "Knight"},
+    {'R', "Ram"},
+    {'C', "Catapult"},
+    {'P', "Pikeman"},
+    {'A', "Archer"}
+};
+
 /**
  * @struct UnitAttributes
  * @brief Represents the attributes of a unit type.

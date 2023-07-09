@@ -1,5 +1,5 @@
 #include "unit.hpp"
-
+#include <iostream>
 // Map of unit attributes for each unit name
 const std::unordered_map<std::string, UnitAttributes> Unit::unitAttributesMap = {
     // Initialize the attributes for each unit type
